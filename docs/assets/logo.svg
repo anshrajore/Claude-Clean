@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Claude Clean mark">
+  <rect width="128" height="128" rx="24" fill="#0B1220"/>
+  <rect x="8" y="8" width="112" height="112" rx="16" fill="#121A2B" stroke="#243049" stroke-width="2"/>
+  <path d="M32 84 L56 40 L72 64 L88 32 L96 32 L72 80 L56 56 L40 84 Z" fill="#7CFFB2"/>
+  <rect x="32" y="92" width="64" height="8" rx="4" fill="#FF7A90"/>
+  <rect x="32" y="92" width="40" height="8" rx="4" fill="#7CFFB2"/>
+</svg>

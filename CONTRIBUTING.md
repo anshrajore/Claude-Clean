@@ -3,10 +3,18 @@
 ## Development
 
 ```bash
+git clone https://github.com/anshrajore/Claude-Clean.git
+cd Claude-Clean
 npm install
 npm run build
 npm test
 npm run lint
+```
+
+Global install from GitHub (the package is not on npmjs.com yet):
+
+```bash
+npm install -g github:anshrajore/Claude-Clean
 ```
 
 ## Rules

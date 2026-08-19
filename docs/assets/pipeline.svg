@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="240" viewBox="0 0 1280 240" role="img" aria-labelledby="flowTitle">
+  <title id="flowTitle">Claude Clean processing pipeline</title>
+  <rect width="1280" height="240" fill="#0B1220"/>
+  <text x="40" y="40" fill="#9AA8BD" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="1.6">HOW A FILE IS CLEANED</text>
+  <g font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">
+    <g transform="translate(40, 72)">
+      <rect width="168" height="112" rx="12" fill="#121A2B" stroke="#243049" stroke-width="2"/>
+      <text x="84" y="48" text-anchor="middle" fill="#F4F7FB" font-size="16" font-weight="700">Input</text>
+      <text x="84" y="76" text-anchor="middle" fill="#9AA8BD" font-size="13">owned file</text>
+    </g>
+    <path d="M216 128 L248 128" stroke="#7CFFB2" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(256, 72)">
+      <rect width="168" height="112" rx="12" fill="#121A2B" stroke="#243049" stroke-width="2"/>
+      <text x="84" y="48" text-anchor="middle" fill="#F4F7FB" font-size="16" font-weight="700">Detect</text>
+      <text x="84" y="76" text-anchor="middle" fill="#9AA8BD" font-size="13">versioned rules</text>
+    </g>
+    <path d="M432 128 L464 128" stroke="#7CFFB2" stroke-width="2"/>
+    <g transform="translate(472, 72)">
+      <rect width="168" height="112" rx="12" fill="#121A2B" stroke="#243049" stroke-width="2"/>
+      <text x="84" y="48" text-anchor="middle" fill="#F4F7FB" font-size="16" font-weight="700">Locate</text>
+      <text x="84" y="76" text-anchor="middle" fill="#9AA8BD" font-size="13">exact offsets</text>
+    </g>
+    <path d="M648 128 L680 128" stroke="#7CFFB2" stroke-width="2"/>
+    <g transform="translate(688, 72)">
+      <rect width="168" height="112" rx="12" fill="#121A2B" stroke="#FF7A90" stroke-width="2"/>
+      <text x="84" y="48" text-anchor="middle" fill="#F4F7FB" font-size="16" font-weight="700">Remove</text>
+      <text x="84" y="76" text-anchor="middle" fill="#FF7A90" font-size="13">watermark only</text>
+    </g>
+    <path d="M864 128 L896 128" stroke="#7CFFB2" stroke-width="2"/>
+    <g transform="translate(904, 72)">
+      <rect width="168" height="112" rx="12" fill="#121A2B" stroke="#7CFFB2" stroke-width="2"/>
+      <text x="84" y="48" text-anchor="middle" fill="#F4F7FB" font-size="16" font-weight="700">Validate</text>
+      <text x="84" y="76" text-anchor="middle" fill="#7CFFB2" font-size="13">parse + hashes</text>
+    </g>
+    <path d="M1080 128 L1112 128" stroke="#7CFFB2" stroke-width="2"/>
+    <g transform="translate(1120, 96)">
+      <circle cx="24" cy="32" r="24" fill="#7CFFB2"/>
+      <text x="24" y="38" text-anchor="middle" fill="#0B1220" font-size="18" font-weight="700"></text>
+    </g>
+  </g>
+</svg>
