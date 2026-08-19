@@ -1,0 +1,13 @@
+{
+  "id": "claude-generated-by",
+  "provider": "claude",
+  "type": "attribution",
+  "match": {
+    "type": "regex",
+    "expression": "Generated (?:by|with) Claude(?:\\.ai)?",
+    "flags": "i"
+  },
+  "confidence": 0.99,
+  "action": "remove",
+  "expandToLine": true
+}

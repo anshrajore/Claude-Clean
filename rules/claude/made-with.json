@@ -1,0 +1,13 @@
+{
+  "id": "claude-made-with",
+  "provider": "claude",
+  "type": "branding",
+  "match": {
+    "type": "regex",
+    "expression": "Made with Claude(?:\\.ai)?",
+    "flags": "i"
+  },
+  "confidence": 0.99,
+  "action": "remove",
+  "expandToLine": true
+}

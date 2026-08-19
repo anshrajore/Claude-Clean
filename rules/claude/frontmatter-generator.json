@@ -1,0 +1,13 @@
+{
+  "id": "claude-frontmatter-generator",
+  "provider": "claude",
+  "type": "watermark",
+  "match": {
+    "type": "regex",
+    "expression": "(?:^|\\n)(?:generator|created_by|generated_by)\\s*:\\s*claude(?:\\.ai)?\\s*(?=\\n|$)",
+    "flags": "i"
+  },
+  "confidence": 0.99,
+  "action": "remove",
+  "expandToLine": true
+}

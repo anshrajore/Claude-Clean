@@ -1,0 +1,12 @@
+{
+  "id": "claude-html-comment",
+  "provider": "claude",
+  "type": "watermark",
+  "match": {
+    "type": "regex",
+    "expression": "<!--\\s*(?:generated|written|created|made)(?:\\s+by|\\s+with)?\\s+claude[^>]*-->",
+    "flags": "i"
+  },
+  "confidence": 0.99,
+  "action": "remove"
+}

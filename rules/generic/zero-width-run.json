@@ -1,0 +1,12 @@
+{
+  "id": "generic-zero-width-run",
+  "provider": "generic",
+  "type": "watermark",
+  "match": {
+    "type": "unicode-sequence",
+    "characters": ["\u200b", "\u200c", "\u200d", "\u2060", "\ufeff"],
+    "minRun": 8
+  },
+  "confidence": 0.92,
+  "action": "remove"
+}

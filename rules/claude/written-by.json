@@ -1,0 +1,13 @@
+{
+  "id": "claude-written-by",
+  "provider": "claude",
+  "type": "attribution",
+  "match": {
+    "type": "regex",
+    "expression": "(?:Written|Created|Composed) (?:by|with) Claude(?:\\.ai)?",
+    "flags": "i"
+  },
+  "confidence": 0.99,
+  "action": "remove",
+  "expandToLine": true
+}

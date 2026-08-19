@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.tmp/
+coverage/
+*.log
+.DS_Store
+.env
+.env.*
+*.claude-clean.bak
+*.cleaned.md
+.claude-clean.local.yml

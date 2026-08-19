@@ -1,0 +1,13 @@
+{
+  "id": "claude-mistakes-footer",
+  "provider": "claude",
+  "type": "attribution",
+  "match": {
+    "type": "literal",
+    "value": "Claude can make mistakes. Please double-check responses.",
+    "caseInsensitive": true
+  },
+  "confidence": 0.99,
+  "action": "remove",
+  "expandToLine": true
+}
