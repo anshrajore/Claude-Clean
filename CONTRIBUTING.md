@@ -11,10 +11,10 @@ npm test
 npm run lint
 ```
 
-Global install from GitHub (the package is not on npmjs.com yet):
+Global install:
 
 ```bash
-npm install -g github:anshrajore/Claude-Clean
+npm install -g claude-clean
 ```
 
 ## Rules

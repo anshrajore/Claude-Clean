@@ -21,6 +21,9 @@
     "url": "https://github.com/anshrajore/Claude-Clean/issues"
   },
   "homepage": "https://github.com/anshrajore/Claude-Clean#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "engines": {
     "node": ">=18.18.0"

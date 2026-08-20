@@ -1,30 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="280" viewBox="0 0 1280 280" role="img" aria-labelledby="archTitle">
-  <title id="archTitle">Engine architecture</title>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="280" viewBox="0 0 1280 280">
   <rect width="1280" height="280" fill="#0B1220"/>
-  <text x="40" y="40" fill="#9AA8BD" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="1.6">ENGINE</text>
-  <g font-family="ui-sans-serif, system-ui, sans-serif">
+  <text x="40" y="40" fill="#9AA8BD" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700">ENGINE</text>
+  <g font-family="Helvetica, Arial, sans-serif">
     <rect x="40" y="64" width="280" height="176" rx="12" fill="#121A2B" stroke="#243049" stroke-width="2"/>
-    <text x="64" y="100" fill="#7CFFB2" font-size="14" font-weight="700" letter-spacing="1.2">RULES</text>
+    <text x="64" y="100" fill="#7CFFB2" font-size="14" font-weight="700">RULES</text>
     <text x="64" y="132" fill="#F4F7FB" font-size="16">claude / generic / custom</text>
     <text x="64" y="160" fill="#9AA8BD" font-size="14">JSON signatures, not hard-coded</text>
     <text x="64" y="188" fill="#9AA8BD" font-size="14">no hard-coded string replace</text>
 
     <rect x="360" y="64" width="280" height="176" rx="12" fill="#121A2B" stroke="#243049" stroke-width="2"/>
-    <text x="384" y="100" fill="#7CFFB2" font-size="14" font-weight="700" letter-spacing="1.2">DETECTORS</text>
-    <text x="384" y="132" fill="#F4F7FB" font-size="16">pattern ù regex ù unicode</text>
+    <text x="384" y="100" fill="#7CFFB2" font-size="14" font-weight="700">DETECTORS</text>
+    <text x="384" y="132" fill="#F4F7FB" font-size="16">pattern / regex / unicode</text>
     <text x="384" y="160" fill="#9AA8BD" font-size="14">context scoring + code fences</text>
-    <text x="384" y="188" fill="#9AA8BD" font-size="14">confidence 0.001.00</text>
+    <text x="384" y="188" fill="#9AA8BD" font-size="14">confidence 0.00-1.00</text>
 
     <rect x="680" y="64" width="280" height="176" rx="12" fill="#121A2B" stroke="#243049" stroke-width="2"/>
-    <text x="704" y="100" fill="#7CFFB2" font-size="14" font-weight="700" letter-spacing="1.2">PARSERS</text>
-    <text x="704" y="132" fill="#F4F7FB" font-size="16">Markdown ù HTML ù JSON AST</text>
+    <text x="704" y="100" fill="#7CFFB2" font-size="14" font-weight="700">PARSERS</text>
+    <text x="704" y="132" fill="#F4F7FB" font-size="16">Markdown / HTML / JSON AST</text>
     <text x="704" y="160" fill="#9AA8BD" font-size="14">JSON never mutated by regex</text>
     <text x="704" y="188" fill="#9AA8BD" font-size="14">source offsets preserved</text>
 
     <rect x="1000" y="64" width="240" height="176" rx="12" fill="#121A2B" stroke="#7CFFB2" stroke-width="2"/>
-    <text x="1024" y="100" fill="#7CFFB2" font-size="14" font-weight="700" letter-spacing="1.2">WRITE</text>
-    <text x="1024" y="132" fill="#F4F7FB" font-size="16">end ù start edits</text>
-    <text x="1024" y="160" fill="#9AA8BD" font-size="14">backup ù dry-run ù sidecar</text>
+    <text x="1024" y="100" fill="#7CFFB2" font-size="14" font-weight="700">WRITE</text>
+    <text x="1024" y="132" fill="#F4F7FB" font-size="16">end to start edits</text>
+    <text x="1024" y="160" fill="#9AA8BD" font-size="14">backup / dry-run / sidecar</text>
     <text x="1024" y="188" fill="#9AA8BD" font-size="14">idempotent output</text>
   </g>
 </svg>

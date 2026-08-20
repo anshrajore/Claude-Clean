@@ -1,12 +1,16 @@
 <p align="center">
-  <img src="docs/assets/banner.svg" alt="Claude Clean — local CLI for precise AI watermark removal" width="100%">
+  <img src="./docs/assets/logo.png" alt="Claude Clean logo" width="96" height="96">
 </p>
 
 <p align="center">
+  <img src="./docs/assets/banner.png" alt="Claude Clean — local CLI for precise AI watermark removal" width="1280" height="320">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/npm/v/claude-clean?style=flat-square&labelColor=0B1220&color=7CFFB2" alt="npm version">
   <img src="https://img.shields.io/badge/license-MIT-7CFFB2?style=flat-square&labelColor=0B1220" alt="MIT license">
   <img src="https://img.shields.io/badge/node-%3E%3D18.18-9AA8BD?style=flat-square&labelColor=0B1220" alt="Node.js 18.18+">
   <img src="https://img.shields.io/badge/network-none-7CFFB2?style=flat-square&labelColor=0B1220" alt="No network">
-  <img src="https://img.shields.io/badge/registry-GitHub-F4F7FB?style=flat-square&labelColor=0B1220" alt="Installed from GitHub">
 </p>
 
 # Claude Clean
@@ -18,28 +22,26 @@ Detections come from versioned JSON rules. Matches are located as `[start, end)`
 The process never uploads files, never calls a network API, and never requires an API key.
 
 <p align="center">
-  <img src="docs/assets/pipeline.svg" alt="Pipeline: input, detect, locate, remove, validate" width="100%">
+  <img src="./docs/assets/pipeline.png" alt="Pipeline: input, detect, locate, remove, validate" width="1280" height="240">
 </p>
+
+```mermaid
+flowchart LR
+  A[Input file] --> B[Detect rules]
+  B --> C[Locate offsets]
+  C --> D[Remove watermark]
+  D --> E[Validate]
+  E --> F[Write output]
+```
 
 ## Install
 
-The package is **not published to npmjs.com** yet, so `npm install -g claude-clean` returns `E404`. Install from GitHub, or clone the repository and build it.
-
-### Option A — global install from GitHub
-
-Run this from any directory:
-
 ```bash
-npm install -g github:anshrajore/Claude-Clean
-```
-
-Then:
-
-```bash
+npm install -g claude-clean
 claude-clean --version
 ```
 
-### Option B — clone and link
+From a clone (run these **inside the repository**, not from `~`):
 
 ```bash
 git clone https://github.com/anshrajore/Claude-Clean.git
@@ -48,8 +50,6 @@ npm install
 npm run build
 npm link
 ```
-
-`npm install` and `npm run build` must run **inside the cloned repo**. Running them from `~` installs whatever `package.json` exists in the home directory (or fails), which is why a Vite peer-dependency error and `Missing script: "build"` appeared.
 
 Requires Node.js 18.18+.
 
@@ -121,7 +121,7 @@ claude-clean --version
 ## Engine
 
 <p align="center">
-  <img src="docs/assets/architecture.svg" alt="Rules, detectors, parsers, and write path" width="100%">
+  <img src="./docs/assets/architecture.png" alt="Rules, detectors, parsers, and write path" width="1280" height="280">
 </p>
 
 | Stage | Behavior |
