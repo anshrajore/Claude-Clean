@@ -1,0 +1,14 @@
+{
+  "id": "generic-ai-assisted-footer",
+  "provider": "generic",
+  "type": "attribution",
+  "match": {
+    "type": "regex",
+    "expression": "(?:AI-assisted|AI generated|Generated with AI)(?: content| document| text)?\\.?$",
+    "flags": "im"
+  },
+  "confidence": 0.97,
+  "action": "remove",
+  "expandToLine": true,
+  "skipProtectedRanges": true
+}

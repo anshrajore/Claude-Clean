@@ -1,0 +1,14 @@
+{
+  "id": "generic-chatgpt-generated-by",
+  "provider": "generic",
+  "type": "attribution",
+  "match": {
+    "type": "regex",
+    "expression": "(?:Generated|Written|Created) by ChatGPT\\b",
+    "flags": "i"
+  },
+  "confidence": 0.99,
+  "action": "remove",
+  "expandToLine": true,
+  "skipProtectedRanges": true
+}
