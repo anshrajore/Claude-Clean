@@ -18,9 +18,9 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm run build
-      - run: node dist/cli/index.js report . --report-format sarif --output claude-clean.sarif
+      - run: node dist/cli/index.js report src --report-format sarif --output claude-clean.sarif
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: claude-clean.sarif
-      - run: node dist/cli/index.js ci .
+      - run: node dist/cli/index.js ci src
