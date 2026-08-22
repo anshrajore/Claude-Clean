@@ -6,6 +6,7 @@ import { AppError } from "../utils/types.js";
 
 export const ConfigSchema = z.object({
   version: z.number().int().positive().default(1),
+  profile: z.enum(["strict", "balanced", "aggressive"]).default("balanced"),
   confidence: z
     .object({
       automaticRemoval: z.number().min(0).max(1).default(0.99),
@@ -17,7 +18,11 @@ export const ConfigSchema = z.object({
     .object({
       includeCode: z.boolean().default(false),
       backup: z.boolean().default(false),
-      maxFileBytes: z.number().int().positive().default(10 * 1024 * 1024),
+      maxFileBytes: z
+        .number()
+        .int()
+        .positive()
+        .default(10 * 1024 * 1024),
       maxDeletionRatio: z.number().min(0).max(1).default(0.5),
     })
     .default({}),
@@ -32,6 +37,7 @@ export const ConfigSchema = z.object({
       extraDirs: z.array(z.string()).default([]),
     })
     .default({}),
+  ignore: z.array(z.string()).default([]),
 });
 
 export type AppConfig = z.infer<typeof ConfigSchema>;

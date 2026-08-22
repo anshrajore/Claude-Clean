@@ -1,5 +1,7 @@
 version: 1
 
+profile: balanced
+
 confidence:
   automaticRemoval: 0.99
   preview: 0.90
@@ -19,3 +21,9 @@ rules:
     - claude
     - generic
     - custom
+
+ignore:
+  - node_modules
+  - dist
+  - coverage
+  - "*.min.js"

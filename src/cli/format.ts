@@ -1,7 +1,7 @@
 import { createColors } from "picocolors";
 
 let pc = createColors(true);
-import type { Detection } from "../utils/types.js";
+import type { Detection, TokenImpact } from "../utils/types.js";
 import { offsetToLineColumn } from "../utils/text.js";
 import { classifyConfidence } from "../validation/validate.js";
 import type { AppConfig } from "../config/loadConfig.js";
@@ -64,6 +64,19 @@ export function formatScan(
   return lines.join("\n");
 }
 
+export function formatTokenImpact(impact: TokenImpact): string {
+  if (impact.estimatedTokensSaved === 0) {
+    return "Token impact: no removable token savings estimated";
+  }
+  return [
+    "Token impact:",
+    `  estimated saved     ${impact.estimatedTokensSaved}`,
+    `  original estimate   ${impact.estimatedOriginalTokens}`,
+    `  cleaned estimate    ${impact.estimatedCleanedTokens}`,
+    `  character reduction ${(impact.reductionRatio * 100).toFixed(2)}%`,
+  ].join("\n");
+}
+
 export function formatContext(content: string, lineStarts: number[], line: number): string {
   const startLine = Math.max(1, line - 3);
   const endLine = Math.min(lineStarts.length, line + 2);
@@ -75,7 +88,10 @@ export function formatContext(content: string, lineStarts: number[], line: numbe
     if (text.endsWith("\n")) {
       text = text.slice(0, -1);
     }
-    const marker = current === line ? pc.yellow(`${String(current).padStart(3, " ")} | ${text}`) : `${String(current).padStart(3, " ")} | ${text}`;
+    const marker =
+      current === line
+        ? pc.yellow(`${String(current).padStart(3, " ")} | ${text}`)
+        : `${String(current).padStart(3, " ")} | ${text}`;
     rows.push(marker);
   }
   return rows.join("\n");
@@ -85,19 +101,24 @@ export function formatCleanSuccess(
   outputPath: string | null,
   alreadyClean: boolean,
   written: boolean,
+  impact?: TokenImpact,
 ): string {
   if (alreadyClean) {
     return `${pc.green("✓ No watermark detected.")}\n${pc.green("✓ File already clean.")}`;
   }
   if (!written) {
-    return [
+    const lines = [
       "Removing watermark...",
       "",
       pc.green("✓ Watermark removed"),
       pc.green("✓ Content preserved"),
       pc.green("✓ Content validated"),
       pc.yellow("Dry-run: no files written"),
-    ].join("\n");
+    ];
+    if (impact) {
+      lines.push("", formatTokenImpact(impact));
+    }
+    return lines.join("\n");
   }
   const lines = [
     "Removing watermark...",
@@ -107,6 +128,9 @@ export function formatCleanSuccess(
     pc.green("✓ Content validated"),
     pc.green("✓ Output written"),
   ];
+  if (impact) {
+    lines.push("", formatTokenImpact(impact));
+  }
   if (outputPath) {
     lines.push("");
     lines.push("Clean file:");

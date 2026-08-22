@@ -27,6 +27,7 @@ import {
   extensionKind,
   looksBinary,
 } from "../utils/fsSafe.js";
+import { calculateTokenImpact } from "../utils/tokenImpact.js";
 
 export interface Engine {
   config: AppConfig;
@@ -88,6 +89,16 @@ export function scanContent(
   return engine.registry.detect(content, context);
 }
 
+function profileConfidence(profile: NonNullable<CliOptions["profile"]>, config: AppConfig): number {
+  if (profile === "strict") {
+    return Math.max(config.confidence.automaticRemoval, 0.995);
+  }
+  if (profile === "aggressive") {
+    return config.confidence.preview;
+  }
+  return config.confidence.automaticRemoval;
+}
+
 export async function scanFile(
   inputPath: string,
   options: Partial<CliOptions> = {},
@@ -99,10 +110,12 @@ export async function scanFile(
   const includeCode = options.includeCode ?? active.config.processing.includeCode;
   const { filePath, content, kind } = await readSourceFile(inputPath, cwd, maxFileBytes);
   const watermarks = scanContent(active, filePath, content, kind, includeCode);
+  const previewPlan = planClean(active, content, filePath, kind, { ...options, dryRun: true });
   return {
     filePath,
     watermarks,
     alreadyClean: watermarks.filter((item) => item.action === "remove").length === 0,
+    tokenImpact: previewPlan.tokenImpact,
   };
 }
 
@@ -117,11 +130,12 @@ export function planClean(
   actionable: Detection[];
   removals: Removal[];
   cleaned: string;
+  tokenImpact: ReturnType<typeof calculateTokenImpact>;
 } {
   const includeCode = options.includeCode ?? engine.config.processing.includeCode;
   const detections = scanContent(engine, filePath, content, kind, includeCode);
-  const minConfidence =
-    options.confidence ?? engine.config.confidence.automaticRemoval;
+  const profile = options.profile ?? engine.config.profile;
+  const minConfidence = options.confidence ?? profileConfidence(profile, engine.config);
   const actionable = detections.filter((detection) => {
     if (detection.action !== "remove") {
       return false;
@@ -136,18 +150,23 @@ export function planClean(
       return detection.confidence >= (options.confidence ?? engine.config.confidence.preview);
     }
     if (bucket === "automatic") {
-      return detection.confidence >= minConfidence || detection.confidence >= engine.config.confidence.automaticRemoval;
+      return (
+        detection.confidence >= minConfidence ||
+        detection.confidence >= engine.config.confidence.automaticRemoval
+      );
     }
     return false;
   });
 
   if (kind === "json") {
     const jsonResult = applyJsonRemovals(content, actionable);
+    const tokenImpact = calculateTokenImpact(content, jsonResult.text);
     return {
       detections,
       actionable,
       removals: jsonResult.removals,
       cleaned: jsonResult.text,
+      tokenImpact,
     };
   }
 
@@ -155,7 +174,8 @@ export function planClean(
     engine.registry.expandDetection(content, detection),
   );
   const cleaned = applyRemovals(content, removals);
-  return { detections, actionable, removals, cleaned };
+  const tokenImpact = calculateTokenImpact(content, cleaned);
+  return { detections, actionable, removals, cleaned, tokenImpact };
 }
 
 function htmlProtectedRanges(content: string): Range[] {
@@ -215,6 +235,7 @@ export async function cleanFile(
       alreadyClean: true,
       originalHash,
       cleanedHash: originalHash,
+      tokenImpact: plan.tokenImpact,
     };
   }
 
@@ -237,6 +258,7 @@ export async function cleanFile(
       alreadyClean: false,
       originalHash,
       cleanedHash: validation.cleanedHash,
+      tokenImpact: plan.tokenImpact,
     };
   }
 
@@ -261,6 +283,7 @@ export async function cleanFile(
     alreadyClean: false,
     originalHash,
     cleanedHash: validation.cleanedHash,
+    tokenImpact: plan.tokenImpact,
   };
 }
 
@@ -273,8 +296,14 @@ export async function diffFile(
   const active = engine ?? (await createEngine(cwd));
   const maxFileBytes = options.maxFileBytes ?? active.config.processing.maxFileBytes;
   const { filePath, content, kind } = await readSourceFile(inputPath, cwd, maxFileBytes);
-  const plan = planClean(active, content, filePath, kind, { ...options, yes: true, confidence: options.confidence ?? 0 });
-  const lines = plan.actionable.map((detection) => `- ${detection.matchedText.replace(/\n/g, "\\n")}`);
+  const plan = planClean(active, content, filePath, kind, {
+    ...options,
+    yes: true,
+    confidence: options.confidence ?? 0,
+  });
+  const lines = plan.actionable.map(
+    (detection) => `- ${detection.matchedText.replace(/\n/g, "\\n")}`,
+  );
   return {
     filePath,
     detections: plan.detections,

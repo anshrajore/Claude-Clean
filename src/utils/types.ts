@@ -27,6 +27,16 @@ export interface Detection {
   action: "remove" | "report" | "inspect";
 }
 
+export interface TokenImpact {
+  originalCharacters: number;
+  cleanedCharacters: number;
+  removedCharacters: number;
+  estimatedOriginalTokens: number;
+  estimatedCleanedTokens: number;
+  estimatedTokensSaved: number;
+  reductionRatio: number;
+}
+
 export interface Removal {
   start: number;
   end: number;
@@ -68,6 +78,7 @@ export interface ScanResult {
   filePath: string;
   watermarks: Detection[];
   alreadyClean: boolean;
+  tokenImpact: TokenImpact;
 }
 
 export interface CleanResult {
@@ -79,6 +90,7 @@ export interface CleanResult {
   alreadyClean: boolean;
   originalHash: string;
   cleanedHash: string | null;
+  tokenImpact: TokenImpact;
 }
 
 export interface CliOptions {
@@ -94,6 +106,9 @@ export interface CliOptions {
   inPlace: boolean;
   confidence: number | undefined;
   yes: boolean;
+  profile: "strict" | "balanced" | "aggressive" | undefined;
+  ignore: string[];
+  reportFormat: "json" | "markdown" | "sarif" | undefined;
   maxFileBytes: number;
   maxDeletionRatio: number;
 }

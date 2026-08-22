@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { readFileSync } from "node:fs";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { inspectContent } from "../inspect/inspectContent.js";
 import {
@@ -21,8 +22,10 @@ import {
   formatCleanSuccess,
   formatGitSummary,
   formatScan,
+  formatTokenImpact,
 } from "./format.js";
 import { PROCESSABLE_EXTENSIONS } from "../utils/fsSafe.js";
+import { renderReport } from "../report/report.js";
 
 function packageVersion(): string {
   const raw = readFileSync(path.join(packageRoot(), "package.json"), "utf8");
@@ -51,10 +54,18 @@ function addShared(command: Command): Command {
     .option("--include-code", "Allow detections inside fenced code blocks")
     .option("--in-place", "Overwrite the original file")
     .option("--confidence <n>", "Minimum confidence required to remove")
-    .option("--yes", "Remove preview-threshold matches without confirmation");
+    .option("--yes", "Remove preview-threshold matches without confirmation")
+    .option("--profile <name>", "Scan profile: strict, balanced, aggressive")
+    .option(
+      "--ignore <pattern>",
+      "Ignore a path or glob during recursive scans",
+      collectRepeated,
+      [],
+    );
 }
 
 function collectOptions(opts: Record<string, unknown>): Partial<CliOptions> {
+  const profile = typeof opts.profile === "string" ? opts.profile : undefined;
   return {
     dryRun: Boolean(opts.dryRun),
     backup: Boolean(opts.backup),
@@ -68,14 +79,39 @@ function collectOptions(opts: Record<string, unknown>): Partial<CliOptions> {
     inPlace: Boolean(opts.inPlace),
     confidence: typeof opts.confidence === "string" ? Number(opts.confidence) : undefined,
     yes: Boolean(opts.yes),
+    profile:
+      profile === "strict" || profile === "balanced" || profile === "aggressive"
+        ? profile
+        : undefined,
+    ignore: Array.isArray(opts.ignore)
+      ? opts.ignore.filter((item): item is string => typeof item === "string")
+      : [],
+    reportFormat:
+      opts.reportFormat === "json" ||
+      opts.reportFormat === "markdown" ||
+      opts.reportFormat === "sarif"
+        ? opts.reportFormat
+        : undefined,
   };
 }
 
-async function resolveTargets(target: string | undefined, recursive: boolean): Promise<string[]> {
+function collectRepeated(value: string, previous: string[]): string[] {
+  return [...previous, value];
+}
+
+async function resolveTargets(
+  target: string | undefined,
+  recursive: boolean,
+  engine: Awaited<ReturnType<typeof createEngine>>,
+  options: Partial<CliOptions> = {},
+): Promise<string[]> {
   if (!target) {
     throw new AppError("USAGE", "A file or directory path is required.");
   }
-  return collectFiles(path.resolve(target), recursive);
+  return collectFiles(path.resolve(target), recursive, [
+    ...engine.config.ignore,
+    ...(options.ignore ?? []),
+  ]);
 }
 
 function printOrJson(jsonMode: boolean, payload: unknown, text: string): void {
@@ -109,7 +145,7 @@ function printError(error: unknown, jsonMode: boolean, verbose: boolean): never 
 
 async function runScan(target: string | undefined, options: Partial<CliOptions>): Promise<void> {
   const engine = await createEngine();
-  const files = await resolveTargets(target, Boolean(options.recursive));
+  const files = await resolveTargets(target, Boolean(options.recursive), engine, options);
   const version = packageVersion();
   if (!options.json) {
     process.stdout.write(`${banner(version)}\n\n`);
@@ -119,10 +155,15 @@ async function runScan(target: string | undefined, options: Partial<CliOptions>)
     const result = await scanFile(file, options, process.cwd(), engine);
     all.push(result);
     if (!options.json) {
-      const source = await readSourceFile(file, process.cwd(), engine.config.processing.maxFileBytes);
+      const source = await readSourceFile(
+        file,
+        process.cwd(),
+        engine.config.processing.maxFileBytes,
+      );
       process.stdout.write(
         `${formatScan(result.filePath, source.content, result.watermarks, engine.config, buildLineStarts(source.content))}\n`,
       );
+      process.stdout.write(`${formatTokenImpact(result.tokenImpact)}\n`);
     }
   }
   if (options.json) {
@@ -132,7 +173,7 @@ async function runScan(target: string | undefined, options: Partial<CliOptions>)
 
 async function runClean(target: string | undefined, options: Partial<CliOptions>): Promise<void> {
   const engine = await createEngine();
-  const files = await resolveTargets(target, Boolean(options.recursive));
+  const files = await resolveTargets(target, Boolean(options.recursive), engine, options);
   const version = packageVersion();
   if (!options.json) {
     process.stdout.write(`${banner(version)}\n\n`);
@@ -141,7 +182,11 @@ async function runClean(target: string | undefined, options: Partial<CliOptions>
   for (const file of files) {
     const scanned = await scanFile(file, options, process.cwd(), engine);
     if (!options.json) {
-      const source = await readSourceFile(file, process.cwd(), engine.config.processing.maxFileBytes);
+      const source = await readSourceFile(
+        file,
+        process.cwd(),
+        engine.config.processing.maxFileBytes,
+      );
       process.stdout.write(
         `${formatScan(scanned.filePath, source.content, scanned.watermarks, engine.config, buildLineStarts(source.content))}\n\n`,
       );
@@ -149,7 +194,9 @@ async function runClean(target: string | undefined, options: Partial<CliOptions>
     const cleaned = await cleanFile(file, options, process.cwd(), engine);
     results.push(cleaned);
     if (!options.json) {
-      process.stdout.write(`${formatCleanSuccess(cleaned.outputPath, cleaned.alreadyClean, cleaned.written)}\n`);
+      process.stdout.write(
+        `${formatCleanSuccess(cleaned.outputPath, cleaned.alreadyClean, cleaned.written, cleaned.tokenImpact)}\n`,
+      );
     }
   }
   if (options.json) {
@@ -159,7 +206,7 @@ async function runClean(target: string | undefined, options: Partial<CliOptions>
 
 async function runDiff(target: string | undefined, options: Partial<CliOptions>): Promise<void> {
   const engine = await createEngine();
-  const files = await resolveTargets(target, Boolean(options.recursive));
+  const files = await resolveTargets(target, Boolean(options.recursive), engine, options);
   const payload = [];
   for (const file of files) {
     const result = await diffFile(file, options, process.cwd(), engine);
@@ -175,7 +222,7 @@ async function runDiff(target: string | undefined, options: Partial<CliOptions>)
 
 async function runInspect(target: string | undefined, options: Partial<CliOptions>): Promise<void> {
   const engine = await createEngine();
-  const files = await resolveTargets(target, Boolean(options.recursive));
+  const files = await resolveTargets(target, Boolean(options.recursive), engine, options);
   const payload = [];
   for (const file of files) {
     const scan = await scanFile(file, options, process.cwd(), engine);
@@ -203,31 +250,47 @@ async function runInspect(target: string | undefined, options: Partial<CliOption
 async function runGit(options: Partial<CliOptions> & { staged?: boolean }): Promise<void> {
   const engine = await createEngine();
   const changed = await gitChangedFiles(Boolean(options.staged));
-  const files = changed.filter((file) => PROCESSABLE_EXTENSIONS.has(path.extname(file).toLowerCase()));
+  const files = changed.filter((file) =>
+    PROCESSABLE_EXTENSIONS.has(path.extname(file).toLowerCase()),
+  );
   let removed = 0;
   let uncertain = 0;
   for (const file of files) {
     try {
-      const source = await readSourceFile(file, process.cwd(), engine.config.processing.maxFileBytes);
+      const source = await readSourceFile(
+        file,
+        process.cwd(),
+        engine.config.processing.maxFileBytes,
+      );
       const plan = planClean(engine, source.content, source.filePath, source.kind, options);
       removed += plan.actionable.length;
-      uncertain += plan.detections.filter((item) => item.action !== "remove" || item.confidence < engine.config.confidence.preview).length;
+      uncertain += plan.detections.filter(
+        (item) => item.action !== "remove" || item.confidence < engine.config.confidence.preview,
+      ).length;
       if (plan.actionable.length > 0 && !options.dryRun) {
         await cleanFile(file, { ...options, inPlace: true }, process.cwd(), engine);
       }
     } catch (error) {
       if (options.verbose) {
-        process.stderr.write(`${file}: ${error instanceof Error ? error.message : String(error)}\n`);
+        process.stderr.write(
+          `${file}: ${error instanceof Error ? error.message : String(error)}\n`,
+        );
       }
     }
   }
   const text = formatGitSummary(files.length, removed, uncertain);
-  printOrJson(Boolean(options.json), { inspected: files.length, detected: removed, removed, uncertain }, text);
+  printOrJson(
+    Boolean(options.json),
+    { inspected: files.length, detected: removed, removed, uncertain },
+    text,
+  );
 }
 
 async function runCi(target: string | undefined, options: Partial<CliOptions>): Promise<void> {
   const engine = await createEngine();
-  const files = target ? await resolveTargets(target, true) : await collectFiles(process.cwd(), true);
+  const files = target
+    ? await resolveTargets(target, true, engine, options)
+    : await collectFiles(process.cwd(), true, [...engine.config.ignore, ...(options.ignore ?? [])]);
   let detected = 0;
   const payload: Array<{ filePath: string; watermarks: Detection[] }> = [];
   try {
@@ -247,12 +310,45 @@ async function runCi(target: string | undefined, options: Partial<CliOptions>): 
   process.exit(detected === 0 ? 0 : 1);
 }
 
+async function runReport(target: string | undefined, options: Partial<CliOptions>): Promise<void> {
+  const engine = await createEngine();
+  const files = target
+    ? await resolveTargets(target, true, engine, { ...options, recursive: true })
+    : await collectFiles(process.cwd(), true, [...engine.config.ignore, ...(options.ignore ?? [])]);
+  const results = [];
+  for (const file of files) {
+    const result = await scanFile(file, options, process.cwd(), engine);
+    const source = await readSourceFile(file, process.cwd(), engine.config.processing.maxFileBytes);
+    results.push({
+      ...result,
+      content: source.content,
+      lineStarts: buildLineStarts(source.content),
+    });
+  }
+  const rendered = renderReport(options.reportFormat ?? "markdown", {
+    results,
+    config: engine.config,
+    cwd: process.cwd(),
+  });
+  if (options.output) {
+    const outputPath = path.resolve(options.output);
+    await writeFile(outputPath, rendered, "utf8");
+    if (!options.json) {
+      process.stdout.write(`Report written: ${outputPath}\n`);
+    }
+    return;
+  }
+  process.stdout.write(`${rendered}\n`);
+}
+
 async function main(): Promise<void> {
   const version = packageVersion();
   const program = new Command();
   program
     .name("claude-clean")
-    .description("Detect and remove embedded Claude/AI watermark or attribution content from local files.")
+    .description(
+      "Detect and remove embedded Claude/AI watermark or attribution content from local files.",
+    )
     .version(version, "--version", "Show version")
     .helpOption("--help", "Show help");
 
@@ -271,14 +367,18 @@ async function main(): Promise<void> {
     await runClean(inputPath, options);
   });
 
-  const scanCmd = addShared(program.command("scan [path]").description("Detect watermarks without writing"));
+  const scanCmd = addShared(
+    program.command("scan [path]").description("Detect watermarks without writing"),
+  );
   scanCmd.action(async (inputPath: string | undefined) => {
     const options = commandOptions(scanCmd);
     configureColor(Boolean(options.noColor));
     await runScan(inputPath, options);
   });
 
-  const diffCmd = addShared(program.command("diff [path]").description("Show watermark removals as a diff"));
+  const diffCmd = addShared(
+    program.command("diff [path]").description("Show watermark removals as a diff"),
+  );
   diffCmd.action(async (inputPath: string | undefined) => {
     const options = commandOptions(diffCmd);
     configureColor(Boolean(options.noColor));
@@ -295,7 +395,10 @@ async function main(): Promise<void> {
   });
 
   const gitCmd = addShared(
-    program.command("git").description("Inspect git-changed files").option("--staged", "Only inspect staged files"),
+    program
+      .command("git")
+      .description("Inspect git-changed files")
+      .option("--staged", "Only inspect staged files"),
   );
   gitCmd.action(async () => {
     const options = commandOptions(gitCmd);
@@ -310,6 +413,18 @@ async function main(): Promise<void> {
     const options = commandOptions(ciCmd);
     configureColor(Boolean(options.noColor));
     await runCi(inputPath, options);
+  });
+
+  const reportCmd = addShared(
+    program
+      .command("report [path]")
+      .description("Write a scan report for audits and CI dashboards")
+      .option("--report-format <format>", "Report format: markdown, json, sarif", "markdown"),
+  );
+  reportCmd.action(async (inputPath: string | undefined) => {
+    const options = commandOptions(reportCmd);
+    configureColor(Boolean(options.noColor));
+    await runReport(inputPath ?? process.cwd(), options);
   });
 
   await program.parseAsync(process.argv);
