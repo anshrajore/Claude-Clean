@@ -1,6 +1,6 @@
 {
   "name": "claude-clean",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Local CLI to detect and remove embedded Claude/AI watermark and attribution content from user-owned files.",
   "keywords": [
     "claude",
